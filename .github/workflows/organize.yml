@@ -1,0 +1,63 @@
+name: Organize LeetCode Problems
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+concurrency:
+  group: organize-leetcode-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  move-folders:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }} # Detached HEAD 방지를 위해 브랜치명 명시
+
+      - name: Organize problem folders into LeetCode directory # nameA 오타 수정
+        run: |
+          TARGET_DIR="LeetCode"
+          mkdir -p "$TARGET_DIR"
+
+          EXCLUDE=(".git" ".github" "README.md" "$TARGET_DIR" "백준" "프로그래머스" "SWEA")
+
+          for item in *; do
+            [ -e "$item" ] || continue
+
+            skip=0
+            for ex in "${EXCLUDE[@]}"; do
+              if [ "$item" = "$ex" ]; then
+                skip=1
+                break
+              fi
+            done
+
+            if [ $skip -eq 0 ]; then
+              echo "Moving $item to $TARGET_DIR/"
+              cp -r "$item" "$TARGET_DIR/"
+              rm -rf "$item"
+            fi
+          done
+
+          git add -A
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          if ! git diff --cached --quiet; then
+            # 1. 이전 커밋(확장 프로그램이 올린 커밋) 덮어쓰기 및 메시지 유지
+            git commit --amend --no-edit
+            
+            # 2. 덮어쓴 커밋을 원격 저장소에 강제 반영
+            git push --force origin ${{ github.ref_name }}
+          else
+            echo "No changes to organize."
+          fi
