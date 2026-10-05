@@ -5,7 +5,7 @@ public:
     {
         int s = start+1;
         const int end = info[start];
-        cout << format("[go] start : {}, end : {}\n",start, end );
+        // cout << format("[go] start : {}, end : {}\n",start, end );
         // ()
         if(s == end)
             return 1;
@@ -34,7 +34,7 @@ public:
             else
             {
                 // (에 해당하는 )인덱스 연결
-                cout << format("[{}] : {}\n",idx_stack.top(), i);
+                // cout << format("[{}] : {}\n",idx_stack.top(), i);
                 info[idx_stack.top()] = i;
                 idx_stack.pop();
 
